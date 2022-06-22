@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+//ipv4 might be unique, maybe :|
+model Gateway {
+  id            Int             @default(autoincrement()) @id
+  serial        String          @unique()
+  name          String
+  ipv4          String          @unique()
+  peripherals   Peripheral[]    @relation("GatewayPeripheral")
+
+  createdAt     DateTime        @default(now()) @map(name: "created_at")
+  updatedAt     DateTime        @updatedAt @map(name: "updated_at")  
+  
+  
+  @@index([name], name: "gateway_name_index")
+
+  @@map(name: "gateways")
+}
+
+model Peripheral {
+  id           Int       @default(autoincrement()) @id
+  
+  uid          Int       @unique()
+  // i guess it is unique
+
+  vendor       String
+  
+  status       Boolean   
+  // true -> online, false -> offline
+
+  createdAt    DateTime  @default(now()) @map(name: "created_at")
+  updatedAt    DateTime  @updatedAt @map(name: "updated_at")
+
+  gatewayId    Int       @map(name: "gateway_id")
+  gateway      Gateway   @relation(name:"GatewayPeripheral", fields: [gatewayId], references: [id])
+  
+  
+  @@index([gatewayId], name: "peripheral_gateway_id_index")
+  @@index([uid], name: "peripheral_uid_index")
+
+  @@map(name: "peripherals")
+}
